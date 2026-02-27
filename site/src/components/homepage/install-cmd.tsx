@@ -3,6 +3,7 @@ import { useState } from "react";
 import styles from "./styles.module.scss";
 import { CodeBlock } from "../codeblock";
 import { useWebHaptics } from "web-haptics/react";
+import { TextMorph } from "torph/react";
 
 const pkgCmds = {
   npm: "npm i web-haptics",
@@ -42,7 +43,9 @@ export const InstallCommands = () => {
           >
             {"$ "}
           </span>
-          {pkgCmds[Object.keys(pkgCmds)[cmdIndex] as keyof typeof pkgCmds]}
+          <TextMorph>
+            {pkgCmds[Object.keys(pkgCmds)[cmdIndex] as keyof typeof pkgCmds]}
+          </TextMorph>
         </CodeBlock>
       </div>
     </div>

@@ -6,6 +6,40 @@
   max-width: 40rem;
   padding: 4rem 1rem;
   margin: 0 auto;
+
+  &:before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 10rem;
+
+    opacity: 0.06;
+
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, #ffffff 100%),
+      linear-gradient(
+        90deg,
+        rgba(255, 43, 58, 1) 0%,
+        rgba(255, 50, 155, 1) 6.25%,
+        rgba(236, 52, 247, 1) 12%,
+        rgba(159, 79, 255, 1) 18%,
+        rgba(89, 70, 249, 1) 24%,
+        rgba(0, 130, 255, 1) 30%,
+        rgba(0, 178, 255, 1) 36%,
+        rgba(0, 168, 239, 1) 42%,
+        rgba(0, 190, 202, 1) 48%,
+        rgba(0, 188, 124, 1) 54%,
+        rgba(0, 202, 72, 1) 60%,
+        rgba(107, 206, 0, 1) 66%,
+        rgba(244, 176, 0, 1) 72%,
+        rgba(255, 153, 0, 1) 84%,
+        rgba(255, 104, 0, 1) 90%,
+        rgba(255, 45, 94, 1) 96%
+      );
+  }
 }
 
 .container {
@@ -147,9 +181,15 @@
 }
 
 @keyframes success {
-  0% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
 .nudge {
@@ -157,10 +197,18 @@
 }
 
 @keyframes nudge {
-  0% { transform: translateY(0); }
-  33% { transform: translateY(-3px); }
-  66% { transform: translateY(3px); }
-  100% { transform: translateY(0); }
+  0% {
+    transform: translateY(0);
+  }
+  33% {
+    transform: translateY(-3px);
+  }
+  66% {
+    transform: translateY(3px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
 .error {
@@ -168,10 +216,18 @@
 }
 
 @keyframes error {
-  0% { transform: translateX(0); }
-  33% { transform: translateX(-8px); }
-  66% { transform: translateX(8px); }
-  100% { transform: translateX(0); }
+  0% {
+    transform: translateX(0);
+  }
+  33% {
+    transform: translateX(-8px);
+  }
+  66% {
+    transform: translateX(8px);
+  }
+  100% {
+    transform: translateX(0);
+  }
 }
 
 .long {
@@ -179,27 +235,69 @@
 }
 
 @keyframes long {
-  0% { transform: translate(0, 0); }
-  5% { transform: translate(-4px, 3px); }
-  10% { transform: translate(2px, -5px); }
-  15% { transform: translate(6px, 1px); }
-  20% { transform: translate(-7px, 4px); }
-  25% { transform: translate(1px, -7px); }
-  30% { transform: translate(-5px, 2px); }
-  35% { transform: translate(8px, -3px); }
-  40% { transform: translate(-2px, 6px); }
-  45% { transform: translate(-6px, -1px); }
-  50% { transform: translate(3px, -5px); }
-  55% { transform: translate(7px, 3px); }
-  60% { transform: translate(-4px, -2px); }
-  65% { transform: translate(0, 7px); }
-  70% { transform: translate(5px, -4px); }
-  75% { transform: translate(-8px, 1px); }
-  80% { transform: translate(3px, -6px); }
-  85% { transform: translate(-1px, 4px); }
-  90% { transform: translate(6px, -2px); }
-  95% { transform: translate(-3px, 5px); }
-  100% { transform: translate(0, 0); }
+  0% {
+    transform: translate(0, 0);
+  }
+  5% {
+    transform: translate(-4px, 3px);
+  }
+  10% {
+    transform: translate(2px, -5px);
+  }
+  15% {
+    transform: translate(6px, 1px);
+  }
+  20% {
+    transform: translate(-7px, 4px);
+  }
+  25% {
+    transform: translate(1px, -7px);
+  }
+  30% {
+    transform: translate(-5px, 2px);
+  }
+  35% {
+    transform: translate(8px, -3px);
+  }
+  40% {
+    transform: translate(-2px, 6px);
+  }
+  45% {
+    transform: translate(-6px, -1px);
+  }
+  50% {
+    transform: translate(3px, -5px);
+  }
+  55% {
+    transform: translate(7px, 3px);
+  }
+  60% {
+    transform: translate(-4px, -2px);
+  }
+  65% {
+    transform: translate(0, 7px);
+  }
+  70% {
+    transform: translate(5px, -4px);
+  }
+  75% {
+    transform: translate(-8px, 1px);
+  }
+  80% {
+    transform: translate(3px, -6px);
+  }
+  85% {
+    transform: translate(-1px, 4px);
+  }
+  90% {
+    transform: translate(6px, -2px);
+  }
+  95% {
+    transform: translate(-3px, 5px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
 }
 
 .install {
