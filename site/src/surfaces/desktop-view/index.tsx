@@ -7,6 +7,7 @@ import { ScanText } from "./scan-text";
 import { InstallCommands } from "../installation";
 import { Usage } from "../usage";
 import { useState } from "react";
+import { motion } from "motion/react";
 
 export default function DesktopView() {
   const [shaking, setShaking] = useState(false);
@@ -15,14 +16,58 @@ export default function DesktopView() {
     <div className={styles.page}>
       <div className={styles.container}>
         <div className={styles.content}>
-          <div className={styles.phone} data-shaking={shaking}>
-            <MobileView disabled setShaking={setShaking} />
-          </div>
+          <motion.div
+            initial={{
+              scale: 0,
+              rotate: 10,
+            }}
+            animate={{
+              scale: 1,
+              rotate: 0,
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 550,
+              damping: 30,
+              mass: 1.2,
+              rotate: {
+                duration: 0.4,
+                ease: "easeOut",
+              },
+            }}
+          >
+            <div className={styles.phone} data-shaking={shaking}>
+              <MobileView disabled setShaking={setShaking} />
+            </div>
+          </motion.div>
           <div className={styles.scan}>
             <ScanText />
-            <div className={styles.qrcode}>
-              <QRCode />
-            </div>
+            <motion.div
+              initial={{
+                scale: 0,
+                rotate: -10,
+              }}
+              animate={{
+                scale: 1,
+                rotate: 0,
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 550,
+                damping: 30,
+                mass: 1.2,
+                delay: 0.1,
+                rotate: {
+                  duration: 0.4,
+                  ease: "easeOut",
+                  delay: 0.1,
+                },
+              }}
+            >
+              <div className={styles.qrcode}>
+                <QRCode />
+              </div>
+            </motion.div>
           </div>
         </div>
 
