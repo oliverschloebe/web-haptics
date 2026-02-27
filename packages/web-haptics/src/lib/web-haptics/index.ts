@@ -1,7 +1,8 @@
 import { defaultPatterns } from "./patterns";
 import type { HapticInput, TriggerOptions, WebHapticsOptions } from "./types";
 
-const TOGGLE_INTERVAL = 100; // ms between checkbox toggles
+const TOGGLE_MIN = 16; // ms at intensity 1 (every frame)
+const TOGGLE_MAX = 184; // range above min (0.5 intensity ≈ 100ms)
 
 let instanceCounter = 0;
 
@@ -31,7 +32,7 @@ export class WebHaptics {
     options?: TriggerOptions,
   ): Promise<void> {
     const pattern = typeof input === "number" ? [input] : input;
-    const intensity = Math.max(0, Math.min(1, options?.intensity ?? 1));
+    const intensity = Math.max(0, Math.min(1, options?.intensity ?? 0.5));
 
     for (let i = 0; i < pattern.length; i++) {
       if (!Number.isFinite(pattern[i]) || pattern[i]! < 0) {
@@ -123,7 +124,8 @@ export class WebHaptics {
         }
 
         if (phaseIndex % 2 === 0) {
-          if (time - lastToggleTime >= TOGGLE_INTERVAL) {
+          const toggleInterval = TOGGLE_MIN + (1 - intensity) * TOGGLE_MAX;
+          if (time - lastToggleTime >= toggleInterval) {
             this.hapticLabel?.click();
             if (this.debug && this.audioCtx) {
               this.playClick(intensity);
