@@ -100,7 +100,15 @@ export const Demo = ({
               data-pattern={name}
               aria-description={pattern.description}
               onClick={(e) => {
-                handleTrigger(name, pattern, e.clientX, e.clientY);
+                const x =
+                  e.clientX ||
+                  e.currentTarget.getBoundingClientRect().left +
+                    e.currentTarget.offsetWidth / 2;
+                const y =
+                  e.clientY ||
+                  e.currentTarget.getBoundingClientRect().top +
+                    e.currentTarget.offsetHeight / 2;
+                handleTrigger(name, pattern, x, y);
               }}
             >
               <span>{name.charAt(0).toUpperCase() + name.slice(1)}</span>
