@@ -46,8 +46,9 @@ export const useParticles = () => {
   return ctx;
 };
 
-const MAX_ACTIVE = 2000;
+const MAX_ACTIVE = 500;
 const ANIM_FRAMES = 120;
+const MAX_DPR = 2;
 
 // --- Emoji cache ---
 
@@ -57,7 +58,7 @@ function getEmojiCanvas(emoji: string): HTMLCanvasElement {
   const existing = emojiCache.get(emoji);
   if (existing) return existing;
 
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
   const CANONICAL_PX = 64;
   const fontSize = Math.ceil(CANONICAL_PX * dpr);
   // Pad canvas so glyphs that overflow the em-square aren't clipped
@@ -146,7 +147,7 @@ function resolveCollisions(particles: Particle[]) {
 // --- Canvas sizing ---
 
 function resizeCanvas(canvas: HTMLCanvasElement) {
-  const dpr = window.devicePixelRatio || 1;
+  const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
   const width = window.innerWidth;
   const height = window.innerHeight;
   const targetW = Math.round(width * dpr);
@@ -207,24 +208,18 @@ export const ParticlesProvider = ({
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<Particle[]>([]);
+  const rafIdRef = useRef<number | null>(null);
+  const ctxRef = useRef<CanvasRenderingContext2D | null>(null);
 
-  useEffect(() => {
+  const startLoop = useCallback(() => {
+    if (rafIdRef.current !== null) return; // already running
+
     const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    // Non-null assertion safe: we checked above and canvas doesn't change
-    const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
-    resizeCanvas(canvas);
-
-    const onResize = () => resizeCanvas(canvas);
-    window.addEventListener("resize", onResize);
-
-    let rafId: number;
+    if (!canvas || !ctxRef.current) return;
+    const ctx = ctxRef.current;
 
     function frame() {
-      rafId = requestAnimationFrame(frame);
-
-      const dpr = window.devicePixelRatio || 1;
+      const dpr = Math.min(window.devicePixelRatio || 1, MAX_DPR);
       const particles = particlesRef.current;
 
       // Update physics, cull dead particles (swap-and-pop)
@@ -235,39 +230,70 @@ export const ParticlesProvider = ({
         }
       }
 
+      // Stop loop when idle
+      if (particles.length === 0) {
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.clearRect(0, 0, canvas!.width, canvas!.height);
+        rafIdRef.current = null;
+        return;
+      }
+
       resolveCollisions(particles);
 
       // Clear
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.clearRect(0, 0, canvas!.width, canvas!.height);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 
-      // Draw
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i];
-        const emojiImg = getEmojiCanvas(p.emoji);
-        // 1.5 matches the padding factor in getEmojiCanvas
-        const drawSize = p.fontSize * p.s * 1.5;
+      // Draw particles batched by opacity: full-opacity first, then fading
+      ctx.globalAlpha = 1;
+      for (let pass = 0; pass < 2; pass++) {
+        for (let i = 0; i < particles.length; i++) {
+          const p = particles[i];
+          const isFading = p.opacity < 1;
 
-        ctx.save();
-        ctx.globalAlpha = p.opacity;
-        ctx.translate(p.x, p.y);
-        ctx.rotate((p.a * Math.PI) / 180);
-        ctx.drawImage(
-          emojiImg,
-          -drawSize / 2,
-          -drawSize / 2,
-          drawSize,
-          drawSize,
-        );
-        ctx.restore();
+          if (pass === 0 && isFading) continue;
+          if (pass === 1 && !isFading) continue;
+
+          if (pass === 1) {
+            ctx.globalAlpha = p.opacity;
+          }
+
+          const emojiImg = getEmojiCanvas(p.emoji);
+          const drawSize = p.fontSize * p.s * 1.5;
+          const halfSize = drawSize / 2;
+
+          // Compute transform matrix directly: translate(x,y) * rotate(a) * scale(dpr)
+          // Avoids save()/restore() which is slow on iOS Safari
+          const rad = (p.a * Math.PI) / 180;
+          const cos = Math.cos(rad) * dpr;
+          const sin = Math.sin(rad) * dpr;
+          ctx.setTransform(cos, sin, -sin, cos, p.x * dpr, p.y * dpr);
+
+          ctx.drawImage(emojiImg, -halfSize, -halfSize, drawSize, drawSize);
+        }
       }
+
+      rafIdRef.current = requestAnimationFrame(frame);
     }
 
-    rafId = requestAnimationFrame(frame);
+    rafIdRef.current = requestAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    ctxRef.current = canvas.getContext("2d") as CanvasRenderingContext2D;
+    resizeCanvas(canvas);
+
+    const onResize = () => resizeCanvas(canvas);
+    window.addEventListener("resize", onResize);
 
     return () => {
-      cancelAnimationFrame(rafId);
+      if (rafIdRef.current !== null) {
+        cancelAnimationFrame(rafIdRef.current);
+        rafIdRef.current = null;
+      }
       window.removeEventListener("resize", onResize);
     };
   }, []);
@@ -283,19 +309,20 @@ export const ParticlesProvider = ({
     ) => {
       const particles = particlesRef.current;
       spawnBurst(particles, x, y, emojis, gx, gy);
+      startLoop();
 
       if (duration && duration > 0) {
         const interval = 150;
         const count = Math.floor(duration / interval);
         for (let i = 1; i <= count; i++) {
-          setTimeout(
-            () => spawnBurst(particles, x, y, emojis, gx, gy),
-            i * interval,
-          );
+          setTimeout(() => {
+            spawnBurst(particles, x, y, emojis, gx, gy);
+            startLoop();
+          }, i * interval);
         }
       }
     },
-    [],
+    [startLoop],
   );
 
   return (
