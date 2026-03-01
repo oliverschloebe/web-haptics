@@ -8,6 +8,7 @@ import { useHaptics } from "../../hooks/useHaptics";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { CodeBlock } from "../../components/codeblock";
 import { Button } from "../../components/button";
+import { TextMorph } from "torph/react";
 
 // --- Types ---
 
@@ -214,7 +215,7 @@ const DELETE_THRESHOLD = 80; // px beyond timeline edge
 // --- Code generation ---
 
 function generateCode(vibs: Vibration[]): string {
-  if (vibs.length === 0) return "trigger([])";
+  if (vibs.length === 0) return "trigger()";
 
   const intensities = vibs.map((v) => v.intensity ?? 0.5);
   const allSame = intensities.every((v) => v === intensities[0]);
@@ -514,27 +515,36 @@ export const HapticBuilder = () => {
 
   return (
     <div ref={builderRef} className={styles.builder}>
-      {/* Presets */}
-      <div className={styles.presets}>
-        {presets.map(([name, preset]) => (
-          <Button
-            key={name}
-            data-active={activePreset === name}
-            style={{
-              opacity: activePreset === name ? 1 : 0.5,
-            }}
-            onClick={() => {
-              if (activePreset === name) return;
-              trigger();
-              dispatch({
-                type: "LOAD_PRESET",
-                taps: patternToTaps(preset.pattern, 0.5),
-              });
-            }}
-          >
-            {name}
+      <div className={styles.header}>
+        {/* Presets */}
+        <div className={styles.presets}>
+          <p>Preset:</p>
+          {presets.map(([name, preset]) => (
+            <button
+              key={name}
+              data-pattern={name}
+              data-active={activePreset === name}
+              onClick={() => {
+                if (activePreset === name) return;
+                trigger();
+                dispatch({
+                  type: "LOAD_PRESET",
+                  taps: patternToTaps(preset.pattern, 0.5),
+                });
+              }}
+            >
+              {name.charAt(0).toUpperCase() + name.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div className={styles.controls}>
+          {totalDuration > 0 && (
+            <span className={styles.totalDuration}>{totalDuration}ms</span>
+          )}
+          <Button onClick={handlePlay} disabled={state.taps.length === 0}>
+            Play
           </Button>
-        ))}
+        </div>
       </div>
 
       {/* Timeline */}
@@ -690,16 +700,6 @@ export const HapticBuilder = () => {
 
       {/* Code output */}
       <CodeBlock code={code} />
-
-      {/* Play + total */}
-      <div className={styles.bottomRow}>
-        <Button wide onClick={handlePlay} disabled={state.taps.length === 0}>
-          Play
-        </Button>
-        {totalDuration > 0 && (
-          <span className={styles.totalDuration}>{totalDuration}ms</span>
-        )}
-      </div>
     </div>
   );
 };
