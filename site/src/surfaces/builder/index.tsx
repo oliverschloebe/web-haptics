@@ -7,7 +7,7 @@ import styles from "./styles.module.scss";
 import { useHaptics } from "../../hooks/useHaptics";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { CodeBlock } from "../../components/codeblock";
-import { Button } from "../../components/button";
+import { HorizontalScroll } from "../../components/horizontal-scroll";
 
 // --- Types ---
 
@@ -262,6 +262,7 @@ export const HapticBuilder = () => {
   const pendingDeleteIdRef = useRef<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [activeTapIds, setActiveTapIds] = useState<Set<string>>(new Set());
+  const [playCount, setPlayCount] = useState(0);
   const timeoutsRef = useRef<number[]>([]);
 
   const pattern = tapsToPattern(state.taps);
@@ -454,20 +455,30 @@ export const HapticBuilder = () => {
   const handlePlay = useCallback(() => {
     if (state.taps.length === 0) return;
 
-    const pat = tapsToPattern(state.taps);
-    trigger(pat);
-    setPlaying(true);
-
+    // Reset any in-progress playback
     timeoutsRef.current.forEach(clearTimeout);
     timeoutsRef.current = [];
 
+    // Immediately activate taps at position 0 to avoid setTimeout race
+    const immediate = new Set(
+      state.taps.filter((t) => t.position === 0).map((t) => t.id),
+    );
+    setActiveTapIds(immediate);
+
+    const pat = tapsToPattern(state.taps);
+    trigger(pat);
+    setPlaying(true);
+    setPlayCount((c) => c + 1);
+
     for (const tap of state.taps) {
-      timeoutsRef.current.push(
-        window.setTimeout(
-          () => setActiveTapIds((prev) => new Set(prev).add(tap.id)),
-          tap.position,
-        ),
-      );
+      if (tap.position > 0) {
+        timeoutsRef.current.push(
+          window.setTimeout(
+            () => setActiveTapIds((prev) => new Set(prev).add(tap.id)),
+            tap.position,
+          ),
+        );
+      }
       timeoutsRef.current.push(
         window.setTimeout(() => {
           setActiveTapIds((prev) => {
@@ -515,33 +526,47 @@ export const HapticBuilder = () => {
   return (
     <div ref={builderRef} className={styles.builder}>
       <div className={styles.header}>
-        {/* Presets */}
-        <div className={styles.presets}>
-          {presets.map(([name, preset]) => (
-            <button
-              key={name}
-              data-pattern={name}
-              data-active={activePreset === name}
-              onClick={() => {
-                if (activePreset === name) return;
-                trigger();
-                dispatch({
-                  type: "LOAD_PRESET",
-                  taps: patternToTaps(preset.pattern, 0.5),
-                });
-              }}
-            >
-              {name.charAt(0).toUpperCase() + name.slice(1)}
-            </button>
-          ))}
-        </div>
+        <HorizontalScroll>
+          {/* Presets */}
+          <div className={styles.presets}>
+            {presets.map(([name, preset]) => (
+              <button
+                key={name}
+                data-pattern={name}
+                data-active={activePreset === name}
+                onClick={() => {
+                  if (activePreset === name) return;
+                  trigger();
+                  dispatch({
+                    type: "LOAD_PRESET",
+                    taps: patternToTaps(preset.pattern, 0.5),
+                  });
+                }}
+              >
+                {name.charAt(0).toUpperCase() + name.slice(1)}
+              </button>
+            ))}
+          </div>
+        </HorizontalScroll>
         <div className={styles.controls}>
           {totalDuration > 0 && (
             <span className={styles.totalDuration}>{totalDuration}ms</span>
           )}
-          <Button onClick={handlePlay} disabled={state.taps.length === 0}>
-            Play
-          </Button>
+          <button onClick={handlePlay} disabled={state.taps.length === 0}>
+            <svg
+              aria-label="Play"
+              width="15"
+              height="17"
+              viewBox="0 0 15 17"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M0.000323688 2.50385L0.000322723 13.6729C0.000322555 15.6161 2.12025 16.8164 3.78656 15.8166L13.0941 10.2321C14.7125 9.2611 14.7125 6.91565 13.0941 5.94465L3.78656 0.36012C2.12025 -0.639667 0.000323855 0.560616 0.000323688 2.50385Z"
+                fill="currentColor"
+              />
+            </svg>
+          </button>
         </div>
       </div>
 
@@ -606,23 +631,13 @@ export const HapticBuilder = () => {
                     <motion.div
                       className={styles.tapRegion}
                       data-selected={tap.id === state.selectedId}
+                      data-playing={activeTapIds.has(tap.id)}
                       style={{
                         left: 0,
                         right: 0,
                         top: inset,
                         bottom: inset,
                         pointerEvents: "auto",
-                      }}
-                      animate={{
-                        scale: activeTapIds.has(tap.id) ? 1.05 : 1,
-                      }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 25,
-                        scale: activeTapIds.has(tap.id)
-                          ? { type: "spring", stiffness: 600, damping: 15 }
-                          : undefined,
                       }}
                       onPointerDown={(e) => handleDragStart(e, tap.id)}
                       onClick={(e) => {
@@ -660,7 +675,7 @@ export const HapticBuilder = () => {
           {/* Playhead */}
           {playing && totalDuration > 0 && (
             <motion.div
-              key="playhead"
+              key={`playhead-${playCount}`}
               className={styles.playhead}
               initial={{ left: 0 }}
               animate={{ left: `${(totalDuration / 1000) * 100}%` }}

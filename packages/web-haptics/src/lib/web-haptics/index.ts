@@ -153,11 +153,10 @@ export class WebHaptics {
   }
 
   static readonly isSupported: boolean =
-    typeof navigator !== "undefined" &&
-    typeof navigator.vibrate === "function";
+    typeof navigator !== "undefined" && typeof navigator.vibrate === "function";
 
   async trigger(
-    input: HapticInput = [{ duration: 10 }],
+    input: HapticInput = [{ duration: 25, intensity: 0.7 }],
     options?: TriggerOptions,
   ): Promise<void> {
     const normalized = normalizeInput(input);
@@ -365,6 +364,10 @@ export class WebHaptics {
     }
 
     this.audioGain.gain.value = 0.5 * intensity;
+
+    const baseFreq = 2000 + intensity * 2000;
+    const jitter = 1 + (Math.random() - 0.5) * 0.3;
+    this.audioFilter.frequency.value = baseFreq * jitter;
 
     const source = this.audioCtx.createBufferSource();
     source.buffer = this.audioBuffer;
