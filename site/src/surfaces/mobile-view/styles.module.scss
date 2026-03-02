@@ -10,9 +10,11 @@
   flex-direction: column;
 
   --padding: 1.25rem;
+  --padding-top: 110cqw;
 
   &[data-disabled="false"] {
     --padding: 2.5rem;
+    --padding-top: 90cqw;
   }
 }
 
@@ -28,7 +30,7 @@
 }
 
 .debug {
-  z-index: 1;
+  z-index: 9999999;
   position: fixed;
   top: 1rem;
   right: 1rem;
@@ -88,7 +90,7 @@
 .scrollarea {
   overflow: hidden;
   overflow-y: auto;
-  padding-top: 102cqw;
+  padding-top: var(--padding-top);
   height: 100%;
   width: 100%;
 }
