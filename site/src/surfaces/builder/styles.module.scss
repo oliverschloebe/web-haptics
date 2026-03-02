@@ -144,20 +144,18 @@
   min-height: 8px;
   cursor: grab;
   touch-action: none;
-  transition:
-    background 100ms ease,
-    border-color 100ms ease;
 
   &[data-selected="true"]:after {
-    background: rgba(26, 136, 248, 0.25);
+    background: rgba(26, 136, 248, 0.3);
   }
 
   &:after {
     content: "";
     position: absolute;
     inset: 1px;
-    background: rgba(26, 136, 248, 0.15);
+    background: rgba(26, 136, 248, 0.2);
     border-radius: 0.5rem;
+    transition: background 100ms ease;
   }
 
   &:active {
@@ -305,13 +303,39 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-}
 
-.totalDuration {
-  font-family: var(--font-code);
-  font-size: 0.8125rem;
-  color: var(--color-muted);
-  margin-left: auto;
+  .totalDuration {
+    width: 3rem;
+    font-family: var(--font-code);
+    font-size: 0.8125rem;
+    color: var(--color-muted);
+    margin-left: auto;
+    text-align: right;
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 5rem;
+    color: var(--color);
+    background-color: var(--body-light);
+
+    transition: transform 100ms ease;
+
+    svg {
+      display: block;
+      height: auto;
+    }
+    &:hover {
+      transform: scale(1.1);
+    }
+    &:active {
+      transform: scale(1);
+    }
+  }
 }
 
 // --- Play ---
