@@ -41,8 +41,8 @@ export const HorizontalScroll = forwardRef<
   }, [elementRef, onHoverCallback]);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.scrollarea} ref={elementRef} style={style}>
+    <div className={styles.container} style={style}>
+      <div className={styles.scrollarea} ref={elementRef}>
         {children}
       </div>
     </div>

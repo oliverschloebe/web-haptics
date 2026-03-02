@@ -1,13 +1,14 @@
 .container {
   position: relative;
   overflow: hidden;
+  min-width: 0;
 
   &::before,
   &::after {
     content: "";
     position: absolute;
     top: 0;
-    bottom: 0;
+    bottom: 4px;
     z-index: 10;
     pointer-events: none;
   }
@@ -15,6 +16,8 @@
   --bg-max: var(--body);
   --left-mask-width: 1rem;
   --right-mask-width: 1rem;
+
+  margin: 0 -0.5rem;
 
   &::before {
     left: 0;
@@ -55,15 +58,21 @@
   }
 }
 .scrollarea {
+  display: flex;
   overflow-x: auto;
   overflow-y: hidden;
+  padding: 0 0.5rem;
+  &:after {
+    content: "";
+    width: 1rem;
+  }
 
   @media (hover: none) {
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
   }
 
-  --size: 4px;
+  --size: 0px;
   --thumb: rgb(224, 224, 224);
   --track: whiteSmoke;
 

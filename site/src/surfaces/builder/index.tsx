@@ -624,28 +624,13 @@ export const HapticBuilder = () => {
                     <motion.div
                       className={styles.tapRegion}
                       data-selected={tap.id === state.selectedId}
+                      data-playing={activeTapIds.has(tap.id)}
                       style={{
                         left: 0,
                         right: 0,
                         top: inset,
                         bottom: inset,
                         pointerEvents: "auto",
-                      }}
-                      animate={{
-                        scaleY: activeTapIds.has(tap.id) ? 1.2 : 1,
-                      }}
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 25,
-                        scaleY: activeTapIds.has(tap.id)
-                          ? {
-                              type: "spring",
-                              stiffness: 131.1,
-                              damping: 2.3,
-                              mass: 0.1,
-                            }
-                          : undefined,
                       }}
                       onPointerDown={(e) => handleDragStart(e, tap.id)}
                       onClick={(e) => {
